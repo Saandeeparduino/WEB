@@ -1,0 +1,143 @@
+    // Function to create seat grid dynamically
+    function createSeats() {
+      const seatGrid = document.getElementById("seatGrid");
+      const bookedSeats = new Set(bookings.map(b => b.seat).filter(s => s));
+      const totalSeats = 100;
+      const availableSeats = totalSeats - bookedSeats.size;
+
+      document.getElementById("seatsAvailable").textContent = availableSeats;
+
+      // Create seat div elements and assign classes based on availability
+      for (let i = 1; i <= totalSeats; i++) {
+        const seat = document.createElement("div");
+        seat.className = "seat";
+        seat.textContent = `S${i}`;
+        
+        // Mark booked seats with the 'booked' class
+        if (bookedSeats.has(i)) {
+          seat.classList.add("booked");
+        }
+        
+        seat.onclick = function () {
+          if (seat.classList.contains("booked")) return; // Prevent selecting booked seats
+          
+          // Toggle selection of seat
+          seat.classList.toggle("selected");
+          document.getElementById("selectedSeat").textContent = seat.classList.contains("selected") ? seat.textContent : "None";
+        };
+
+        seatGrid.appendChild(seat);
+      }
+    }
+
+    // Function to confirm booking and store data
+    function confirmBooking() {
+      const selectedSeat = document.getElementById("selectedSeat").textContent;
+      if (selectedSeat === "None") {
+        alert("Please select a seat before booking!");
+        return;
+      }
+
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+      const school = document.getElementById("school").value;
+      const age = document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const address = document.getElementById("address").value;
+      const grade = document.getElementById("grade").value;
+
+      // Store booking details
+      bookings.push({
+        name,
+        phone,
+        email,
+        school,
+        age,
+        gender,
+        address,
+        grade,
+        seat: selectedSeat
+      });
+
+      localStorage.setItem("campBookings", JSON.stringify(bookings));
+
+      // Show confirmation modal
+      document.getElementById("modalDetails").textContent = `Booking for ${name} has been confirmed for seat ${selectedSeat}.`;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    // Function to generate and display the ticket
+    function generateTicket() {
+      const booking = bookings[bookings.length - 1];
+      const ticket = document.getElementById("ticket");
+      
+      ticket.innerHTML = `
+        <h3>Booking Confirmation</h3>
+        <p>Name: ${booking.name}</p>
+        <p>Phone: ${booking.phone}</p>
+        <p>Email: ${booking.email}</p>
+        <p>School: ${booking.school}</p>
+        <p>Age: ${booking.age}</p>
+        <p>Gender: ${booking.gender}</p>
+        <p>Grade: ${booking.grade}</p>
+        <p>Seat: ${booking.seat}</p>
+        <div id="qrcode"></div>
+      `;
+      
+      // Generate QR code for the booking
+      new QRCode(document.getElementById("qrcode"), `Booking details for ${booking.name}, Seat: ${booking.seat}`);
+
+      document.getElementById("modal").style.display = "none";
+    }
+
+    // Function to close the modal
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    // Function to reset form inputs and seat grid
+    function resetForm() {
+      document.getElementById("name").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("school").value = "";
+      document.getElementById("age").value = "";
+      document.getElementById("gender").value = "";
+      document.getElementById("address").value = "";
+      document.getElementById("grade").value = "";
+      document.getElementById("selectedSeat").textContent = "None";
+      
+      // Reset the seat selection
+      const seatGrid = document.getElementById("seatGrid");
+      const seats = seatGrid.querySelectorAll(".seat");
+      seats.forEach(seat => seat.classList.remove("selected"));
+    }
+
+    // Function to search for bookings based on phone number
+    function searchBookings() {
+      const searchPhone = document.getElementById("searchPhone").value;
+      const ticketList = document.getElementById("ticketList");
+      
+      ticketList.innerHTML = ""; // Clear previous search results
+
+      const searchResults = bookings.filter(b => b.phone === searchPhone);
+      if (searchResults.length > 0) {
+        searchResults.forEach(booking => {
+          const p = document.createElement("p");
+          p.textContent = `${booking.name} - Seat: ${booking.seat}`;
+          p.onclick = function () {
+            alert(`Booking details for ${booking.name}:\nPhone: ${booking.phone}\nEmail: ${booking.email}\nSeat: ${booking.seat}`);
+          };
+          ticketList.appendChild(p);
+        });
+      } else {
+        ticketList.innerHTML = "<p>No bookings found for this phone number.</p>";
+      }
+    }
+
+    // Initialize the seat grid on page load
+    createSeats();
+  </script>
+</body>
+</html>
